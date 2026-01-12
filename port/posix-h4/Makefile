@@ -3,6 +3,7 @@ BTSTACK_ROOT ?= ../..
 
 CORE += \
 	btstack_chipset_bcm.c \
+	btstack_ltv_builder.c \
 	btstack_chipset_cc256x.c \
 	btstack_chipset_csr.c \
 	btstack_chipset_em9301.c \

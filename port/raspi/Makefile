@@ -3,6 +3,7 @@ BTSTACK_ROOT ?= ../..
 
 CORE += \
 	btstack_chipset_bcm.c \
+	btstack_ltv_builder.c \
 	btstack_chipset_bcm_download_firmware.c \
 	btstack_control_raspi.c \
 	btstack_link_key_db_tlv.c \
@@ -25,7 +26,7 @@ CORE += \
 include ${BTSTACK_ROOT}/example/Makefile.inc
 
 # use (cross)compiler for Raspi
-CC = arm-linux-gnueabihf-gcc
+CC = gcc
 
 CFLAGS  += -g -Wall -Werror \
 	-I$(BTSTACK_ROOT)/platform/embedded \

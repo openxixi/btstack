@@ -83,7 +83,12 @@ static btstack_tlv_posix_t   tlv_context;
 static bd_addr_t             static_address;
 
 // random MAC address for the device, used if nothing else is available 
-static bd_addr_t random_address = { 0xC1, 0x01, 0x01, 0x01, 0x01, 0x01 };
+// #define USE_ADDR1
+#if (APP_ROLE == CONST_MASTER)
+static bd_addr_t random_address = { 0xC0, 0x00, 0x00, 0x0, 0x12, 0x21 };
+#else
+static bd_addr_t random_address = { 0xC1, 0x01, 0x01, 0x01, 0x1, 0x01 };
+#endif
 static bd_addr_t custom_address = { 0 };
 
 static int is_bcm;
@@ -95,7 +100,11 @@ static void local_version_information_handler(uint8_t * packet);
 
 static hci_transport_config_uart_t config = {
     .type = HCI_TRANSPORT_CONFIG_UART,
+    #if (APP_ROLE == CONST_MASTER)
     .device_name = "/dev/ttyACM0",
+    #else
+    .device_name = "/dev/ttyACM1",
+    #endif
     .baudrate_init = 115200,
     .baudrate_main = 0,
     .flowcontrol = BTSTACK_UART_FLOWCONTROL_ON,
@@ -226,6 +235,10 @@ static void local_version_information_handler(uint8_t * packet){
     printf("- LMP Subversion 0x%04x\n", lmp_subversion);
     printf("- Manufacturer 0x%04x\n", manufacturer);
     switch (manufacturer){
+        case BLUETOOTH_COMPANY_ID_INGCHIPS_TECHNOLOGY_CO_LTD:
+            printf("ingchips - CSR compatible chipset.\n");
+            // hci_set_chipset(btstack_chipset_zephyr_instance());
+            break;
         case BLUETOOTH_COMPANY_ID_CAMBRIDGE_SILICON_RADIO:
             printf("Cambridge Silicon Radio - CSR chipset, Build ID: %u.\n", hci_revision);
             use_fast_uart();
@@ -307,7 +320,7 @@ static void trigger_shutdown(void){
 }
 
 int main(int argc, const char * argv[]){
-
+    printf("build @ %s %s\n", __DATE__, __TIME__);
     btstack_main_config( argc, argv, &config, custom_address, &tlv_reset );
 
     // register callback for CTRL-c
