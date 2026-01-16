@@ -1,0 +1,64 @@
+name: 自动编译
+
+on:
+  push:
+    branches:
+      - develop_zyx
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    name: 编译项目
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 安装编译依赖
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          gcc \
+          make \
+          cmake \
+          pkg-config \
+          libusb-1.0-0-dev \
+          python3 \
+          python3-pip
+        
+    - name: 设置 Python 环境
+      run: |
+        python3 --version
+        
+    - name: 编译 posix-h4 平台示例
+      working-directory: port/posix-h4
+      run: |
+        make clean || true
+        make -j$(nproc) || make
+        
+    - name: 编译 libusb 平台示例
+      working-directory: port/libusb
+      run: |
+        make clean || true
+        make -j$(nproc) || make
+        
+    - name: 编译 CMake 示例
+      working-directory: example
+      run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make -j$(nproc) || make
+        
+    - name: 列出编译产物
+      run: |
+        echo "=== posix-h4 编译产物 ==="
+        find port/posix-h4 -type f -executable -o -name "*.o" | head -20 || true
+        echo ""
+        echo "=== libusb 编译产物 ==="
+        find port/libusb -type f -executable -o -name "*.o" | head -20 || true
+        echo ""
+        echo "=== CMake 编译产物 ==="
+        find example/build -type f -executable 2>/dev/null | head -20 || true
