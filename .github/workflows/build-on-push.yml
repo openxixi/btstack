@@ -55,10 +55,68 @@ jobs:
     - name: 列出编译产物
       run: |
         echo "=== posix-h4 编译产物 ==="
-        find port/posix-h4 -type f -executable -o -name "*.o" | head -20 || true
+        find port/posix-h4 -type f -executable 2>/dev/null | head -20 || true
         echo ""
         echo "=== libusb 编译产物 ==="
-        find port/libusb -type f -executable -o -name "*.o" | head -20 || true
+        find port/libusb -type f -executable 2>/dev/null | head -20 || true
         echo ""
         echo "=== CMake 编译产物 ==="
         find example/build -type f -executable 2>/dev/null | head -20 || true
+        
+    - name: 上传 posix-h4 编译产物
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: posix-h4-binaries
+        path: |
+          port/posix-h4/*.hcd
+          port/posix-h4/*
+        retention-days: 30
+      continue-on-error: true
+        
+    - name: 上传 libusb 编译产物
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: libusb-binaries
+        path: |
+          port/libusb/*
+        retention-days: 30
+      continue-on-error: true
+        
+    - name: 上传 CMake 编译产物
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: cmake-binaries
+        path: |
+          example/build/**
+        retention-days: 30
+      continue-on-error: true
+        
+    - name: 收集所有固件文件
+      run: |
+        echo "=== 查找所有固件文件 ==="
+        echo "ELF 文件:"
+        find . -name "*.elf" -type f 2>/dev/null | head -20 || true
+        echo ""
+        echo "HEX 文件:"
+        find . -name "*.hex" -type f 2>/dev/null | head -20 || true
+        echo ""
+        echo "BIN 文件:"
+        find . -name "*.bin" -type f 2>/dev/null | head -20 || true
+        echo ""
+        echo "可执行文件:"
+        find port/posix-h4 port/libusb example/build -type f -executable 2>/dev/null | head -20 || true
+        
+    - name: 上传所有固件文件
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: firmware-files
+        path: |
+          **/*.elf
+          **/*.hex
+          **/*.bin
+        retention-days: 30
+      continue-on-error: true
