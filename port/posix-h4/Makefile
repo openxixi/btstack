@@ -4,6 +4,17 @@ BTSTACK_ROOT ?= ../..
 # Role: master (APP_ROLE=0 -> /dev/ttyACM0) or slave (APP_ROLE=1 -> /dev/ttyACM1)
 # Usage: make [ROLE=master|slave]   default: master
 ROLE ?= master
+
+# Convenience mapping for EATT demos:
+# - make eatt_test_client  -> ROLE=master
+# - make eatt_test_server  -> ROLE=slave
+ifneq (,$(filter eatt_test_client,$(MAKECMDGOALS)))
+ROLE := master
+endif
+ifneq (,$(filter eatt_test_server,$(MAKECMDGOALS)))
+ROLE := slave
+endif
+
 ifeq ($(ROLE),master)
 ROLE_CFLAGS := -DAPP_ROLE=0
 else ifeq ($(ROLE),slave)
@@ -102,7 +113,7 @@ EXAMPLES += pan_lwip_http_server
 #   build-master/  -> APP_ROLE=0  /dev/ttyACM0
 #   build-slave/   -> APP_ROLE=1  /dev/ttyACM1
 # -----------------------------------------------------------------------
-.PHONY: all master slave _build_examples
+.PHONY: all master slave _build_examples prep_eatt_test_client prep_eatt_test_server
 
 all: master slave
 
@@ -122,4 +133,16 @@ slave: BCM43430A1.hcd
 	@echo "=== Slave binaries  -> build-slave/ ==="
 
 _build_examples: ${EXAMPLES}
+
+# Ensure main.c is rebuilt with the role selected for each EATT target.
+eatt_test_client: prep_eatt_test_client
+eatt_test_server: prep_eatt_test_server
+
+prep_eatt_test_client:
+	@rm -f main.o
+	@echo "Building eatt_test_client with ROLE=master (APP_ROLE=0)"
+
+prep_eatt_test_server:
+	@rm -f main.o
+	@echo "Building eatt_test_server with ROLE=slave (APP_ROLE=1)"
 

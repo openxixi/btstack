@@ -226,6 +226,8 @@ EXAMPLES_CLASSIC_ONLY =     \
 EXAMPLES_LE_ONLY=           		\
 	ancs_client_demo        		\
 	att_delayed_response    		\
+	eatt_test_client        		\
+	eatt_test_server        		\
 	gap_le_advertisements   		\
 	gatt_battery_query      		\
 	gatt_browser            		\
@@ -384,6 +386,17 @@ gatt_streamer_server.o: gatt_streamer_server.h gatt_streamer_server.c
 
 gatt_streamer_server: ${CORE_OBJ} ${COMMON_OBJ} ${ATT_OBJ} ${GATT_SERVER_OBJ} ${CLASSIC_OBJ} gatt_streamer_server.o
 	${CC} $^ ${LDFLAGS} -o $@
+
+
+eatt_test_server.o: gatt_streamer_server.h eatt_test_server.c
+	${CC} ${CFLAGS} -c $(filter-out gatt_streamer_server.h,$^) -o $@
+
+eatt_test_server: ${CORE_OBJ} ${COMMON_OBJ} ${ATT_OBJ} ${GATT_SERVER_OBJ} eatt_test_server.o
+	${CC} $^ ${LDFLAGS} -o $@
+
+
+eatt_test_client: ${CORE_OBJ} ${COMMON_OBJ} ${ATT_OBJ} ${GATT_CLIENT_OBJ} eatt_test_client.c
+	${CC} $^ ${CFLAGS} ${LDFLAGS} -o $@
 
 
 le_streamer_client: ${CORE_OBJ} ${COMMON_OBJ} ${ATT_OBJ} ${GATT_CLIENT_OBJ} le_streamer_client.c

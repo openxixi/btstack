@@ -42,6 +42,8 @@ set(EXAMPLES_CLASSIC_ONLY
 set(EXAMPLES_LE_ONLY
 	ancs_client_demo
 	att_delayed_response   
+	eatt_test_client
+	eatt_test_server
 	gap_le_advertisements  
 	gatt_battery_query     
 	gatt_browser
