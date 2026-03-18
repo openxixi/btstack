@@ -74,6 +74,13 @@
 #include "hci_transport_h4.h"
 #include "hci.h"
 
+/* Role definitions: compile-time selectable via -DAPP_ROLE=0 (master) or -DAPP_ROLE=1 (slave) */
+#define CONST_MASTER 0
+#define CONST_SLAVE  1
+#ifndef APP_ROLE
+#define APP_ROLE CONST_MASTER   /* default to master if not specified via -DAPP_ROLE=... */
+#endif
+
 #define TLV_DB_PATH_PREFIX "/tmp/btstack_"
 #define TLV_DB_PATH_POSTFIX ".tlv"
 static char tlv_db_path[100];

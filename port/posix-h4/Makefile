@@ -1,6 +1,17 @@
 # Makefile for libusb based examples
 BTSTACK_ROOT ?= ../..
 
+# Role: master (APP_ROLE=0 -> /dev/ttyACM0) or slave (APP_ROLE=1 -> /dev/ttyACM1)
+# Usage: make [ROLE=master|slave]   default: master
+ROLE ?= master
+ifeq ($(ROLE),master)
+ROLE_CFLAGS := -DAPP_ROLE=0
+else ifeq ($(ROLE),slave)
+ROLE_CFLAGS := -DAPP_ROLE=1
+else
+$(error ROLE must be 'master' or 'slave', got: $(ROLE))
+endif
+
 CORE += \
 	btstack_chipset_bcm.c \
 	btstack_ltv_builder.c \
@@ -56,6 +67,8 @@ CFLAGS  += -g -Wall -Werror \
     -I${BTSTACK_ROOT}/3rd-party/rijndael \
     -I${BTSTACK_ROOT}/3rd-party/tinydir
 
+CFLAGS  += $(ROLE_CFLAGS)
+
 VPATH += ${BTSTACK_ROOT}/3rd-party/rijndael
 
 VPATH += ${BTSTACK_ROOT}/platform/posix
@@ -83,5 +96,30 @@ EXAMPLES += pan_lwip_http_server
 # CFLAGS  += -I/usr/local/include -DHAVE_PORTAUDIO
 # LDFLAGS += -L/sw/lib -lportaudio -Wl,-framework,CoreAudio -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit -Wl,-framework,Carbon
 
-all: BCM43430A1.hcd ${EXAMPLES}
+# -----------------------------------------------------------------------
+# Role-aware build targets
+# Build both master and slave binaries in separate directories:
+#   build-master/  -> APP_ROLE=0  /dev/ttyACM0
+#   build-slave/   -> APP_ROLE=1  /dev/ttyACM1
+# -----------------------------------------------------------------------
+.PHONY: all master slave _build_examples
+
+all: master slave
+
+master: BCM43430A1.hcd
+	@echo "=== Building MASTER  (APP_ROLE=0, /dev/ttyACM0) ==="
+	@mkdir -p build-master
+	$(MAKE) ROLE=master _build_examples
+	@cp $(EXAMPLES) build-master/
+	@echo "=== Master binaries -> build-master/ ==="
+
+slave: BCM43430A1.hcd
+	@echo "=== Building SLAVE   (APP_ROLE=1, /dev/ttyACM1) ==="
+	@mkdir -p build-slave
+	@rm -f *.o
+	$(MAKE) ROLE=slave _build_examples
+	@cp $(EXAMPLES) build-slave/
+	@echo "=== Slave binaries  -> build-slave/ ==="
+
+_build_examples: ${EXAMPLES}
 
